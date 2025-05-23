@@ -1,6 +1,24 @@
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+from dotenv import load_dotenv
+import os
 from openai import OpenAI
 
+# Load API key from .env
+load_dotenv()
 client = OpenAI()
+
+# Create FastAPI app instance
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/")
+async def read_root():
+    return {"message": "IIHMCA GPT Assistant is running!"}
 
 @app.post("/chat")
 async def chat(request: Request):
