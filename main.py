@@ -1,29 +1,6 @@
-import openai
-import os
+from openai import OpenAI
 
-# Replace this with your actual API key from https://platform.openai.com/account/api-keys
-openai.api_key = "sk-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-
-app = FastAPI()
-
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
-@app.get("/", response_class=HTMLResponse)
-async def get_home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-from dotenv import load_dotenv
-import openai
-import os
-
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI()
 
 @app.post("/chat")
 async def chat(request: Request):
@@ -31,12 +8,12 @@ async def chat(request: Request):
     question = data.get("message", "").strip()
 
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an AI admission assistant for IIHMCA, a hospitality and culinary college in Hyderabad, India. You help students with questions about admissions, courses, placements, hostel, fee structure, and eligibility. Answer like a helpful counselor. If the question is unclear, politely ask them to rephrase."
+                    "content": "You are an AI admission assistant for IIHMCA, a hospitality and culinary college in Hyderabad, India. You help students with questions about admissions, courses, placements, hostel, fee structure, and eligibility. Answer like a helpful counselor."
                 },
                 {"role": "user", "content": question}
             ]
