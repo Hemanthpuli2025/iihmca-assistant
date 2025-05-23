@@ -16,9 +16,9 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/")
-async def read_root():
-    return {"message": "IIHMCA GPT Assistant is running!"}
+@app.get("/", response_class=HTMLResponse)
+async def get_home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/chat")
 async def chat(request: Request):
