@@ -18,27 +18,31 @@ templates = Jinja2Templates(directory="templates")
 async def get_home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+from dotenv import load_dotenv
+import openai
+import os
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 @app.post("/chat")
 async def chat(request: Request):
     data = await request.json()
-    question = data.get("message", "").strip().lower()
+    question = data.get("message", "").strip()
 
-    keywords_map = {
-        ("admission", "open", "start"): "Admissions are open from June 1st to July 15th.",
-        ("courses", "programs", "culinary"): "We offer BHM, BCT&CA, Diploma in Culinary Arts, and Hotel Management.",
-        ("hostel", "accommodation"): "Yes, IIHMCA offers hostel facilities for both boys and girls.",
-        ("fee", "fees", "structure", "cost"): "The fee structure varies by course. Please visit our website or contact the admin office.",
-        ("placement", "job", "career"): "Yes, we have a strong placement cell that supports job placements after course completion.",
-        ("contact", "phone", "email", "number"): "You can reach us at +91-XXXXXXXXXX or email us at info@iihmca.org.",
-        ("entrance", "exam", "test"): "No, admissions are based on merit and a personal interview.",
-        ("eligibility", "qualification"): "You must have completed 10+2 from any recognized board to apply for our degree programs.",
-    }
-
-    reply = "Sorry, I didn't understand your question. Could you please rephrase it?"
-
-    for keywords, answer in keywords_map.items():
-        if any(keyword in question for keyword in keywords):
-            reply = answer
-            break
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an AI admission assistant for IIHMCA, a hospitality and culinary college in Hyderabad, India. You help students with questions about admissions, courses, placements, hostel, fee structure, and eligibility. Answer like a helpful counselor. If the question is unclear, politely ask them to rephrase."
+                },
+                {"role": "user", "content": question}
+            ]
+        )
+        reply = response.choices[0].message.content.strip()
+    except Exception as e:
+        reply = f"Sorry, there was an error: {e}"
 
     return JSONResponse({"reply": reply})
